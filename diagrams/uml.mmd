@@ -1,15 +1,63 @@
 classDiagram
-    %% Replace the placeholders below with your actual classes, attributes, methods, and relationships.
-    %% Keep this file updated so it matches your final implementation.
+    %% PawPal+ System Design
+    %% A pet care planning assistant that generates daily schedules based on tasks, priorities, and time constraints
 
-    class ClassName {
-        +type attribute
-        +method() returnType
+    class PriorityLevel {
+        <<enumeration>>
+        LOW
+        MEDIUM
+        HIGH
     }
 
-    class AnotherClass {
-        +type attribute
-        +method() returnType
+    class Owner {
+        +string name
+        +string available_time_slot
     }
 
-    ClassName --> AnotherClass : relationship
+    class Pet {
+        +string name
+        +string owner
+        +string species
+        +set_name(name: string) void
+        +set_owner(owner: string) void
+        +set_species(species: string) void
+    }
+
+    class Task {
+        +string name
+        +list pets
+        +int duration_minutes
+        +PriorityLevel priority
+        +string recurring
+        +set_name(name: string) void
+        +set_pets(pets: list) void
+        +set_duration_minutes(duration: int) void
+        +set_priority(priority: PriorityLevel) void
+        +set_recurring(recurring: string) void
+    }
+
+    class Schedule {
+        +Owner owner
+        +list tasks
+        +date plan_date
+        +add_task(task: Task) void
+        +remove_task(task: Task) void
+        +generate_plan() list
+        +get_plan() list
+    }
+
+    class Scheduler {
+        +sort_by_priority(tasks: list) list$
+        +filter_by_available_time(tasks: list, available_minutes: int) list$
+        +handle_conflicts(tasks: list) list$
+        +create_schedule(owner: Owner, pet: Pet, tasks: list, available_minutes: int) list$
+    }
+
+    %% Relationships
+    PriorityLevel <|-- Task : used by
+    Owner "1" o-- "*" Pet : owns
+    Owner "1" o-- "*" Schedule : has
+    Task "1" o-- "1" PriorityLevel : has
+    Task "1" o-- "*" Pet : has
+    Schedule "1" o-- "*" Task : contains
+    Schedule --> Scheduler : uses
