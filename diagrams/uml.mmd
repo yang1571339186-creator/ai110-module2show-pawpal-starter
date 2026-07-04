@@ -1,63 +1,100 @@
 classDiagram
-    %% PawPal+ System Design
-    %% A pet care planning assistant that generates daily schedules based on tasks, priorities, and time constraints
+    %% PawPal+ System Design - Redesigned
+    %% A pet care planning assistant that generates daily schedules with time-based reasoning
 
+    %% =====================
+    %% ENUMERATIONS
+    %% =====================
     class PriorityLevel {
         <<enumeration>>
-        LOW
-        MEDIUM
-        HIGH
+        LOW = 1
+        MEDIUM = 2
+        HIGH = 3
+    }
+
+
+    %% =====================
+    %% CORE ENTITIES
+    %% =====================
+    class TimeSlot {
+        -start_time: str
+        -end_time: str
+        +parse(time_string: str) TimeSlot$
+        +duration_minutes() int
+        +conflicts_with(other: TimeSlot) bool
     }
 
     class Owner {
-        +string name
-        +string available_time_slot
+        -name: str
+        -available_time_slots: List~TimeSlot~
+        -tasks: List~Task~
+        +get_name() str
+        +set_name(name: str) void
+        +get_available_time_slots() List~TimeSlot~
+        +set_available_time_slots(slots: List~TimeSlot~) void
+        +get_tasks() List~Task~
+        +set_tasks(tasks: List~Task~) void
+        +add_task(task: Task) void
+        +remove_task(task: Task) void
+        +total_available_minutes() int
+        +__repr__() str
     }
 
     class Pet {
-        +string name
-        +string owner
-        +string species
-        +set_name(name: string) void
-        +set_owner(owner: string) void
-        +set_species(species: string) void
+        -name: str
+        -species: str
+        -owner: Owner
+        +get_name() str
+        +set_name(name: str) void
+        +get_species() str
+        +set_species(species: str) void
+        +get_owner() Owner
+        +set_owner(owner: Owner) void
+        +__repr__() str
     }
 
     class Task {
-        +string name
-        +list pets
-        +int duration_minutes
-        +PriorityLevel priority
-        +string recurring
-        +set_name(name: string) void
-        +set_pets(pets: list) void
+        -name: str
+        -pets: List~Pet~
+        -duration_minutes: int
+        -priority: PriorityLevel
+        -is_recurring: bool
+        -completed: bool
+        -notes: str
+        +get_name() str
+        +set_name(name: str) void
+        +get_pets() List~Pet~
+        +set_pets(pets: List~Pet~) void
+        +get_duration_minutes() int
         +set_duration_minutes(duration: int) void
+        +get_priority() PriorityLevel
         +set_priority(priority: PriorityLevel) void
-        +set_recurring(recurring: string) void
-    }
-
-    class Schedule {
-        +Owner owner
-        +list tasks
-        +date plan_date
-        +add_task(task: Task) void
-        +remove_task(task: Task) void
-        +generate_plan() list
-        +get_plan() list
+        +get_is_recurring() bool
+        +set_is_recurring(is_recurring: bool) void
+        +get_completed() bool
+        +set_completed(completed: bool) void
+        +get_notes() str
+        +set_notes(notes: str) void
+        +__repr__() str
     }
 
     class Scheduler {
-        +sort_by_priority(tasks: list) list$
-        +filter_by_available_time(tasks: list, available_minutes: int) list$
-        +handle_conflicts(tasks: list) list$
-        +create_schedule(owner: Owner, pet: Pet, tasks: list, available_minutes: int) list$
+        +sort_tasks_by_priority(tasks: List~Task~) List~Task~$
+        +filter_tasks_by_time(tasks: List~Task~, available_minutes: int) List~Task~$
+        +create_daily_schedule(owner: Owner, tasks: List~Task~) Map~TimeSlot, List~Task~~$
+        +explain_choice(task: Task, reason: str) str$
     }
 
-    %% Relationships
-    PriorityLevel <|-- Task : used by
+    %% =====================
+    %% RELATIONSHIPS
+    %% =====================
     Owner "1" o-- "*" Pet : owns
-    Owner "1" o-- "*" Schedule : has
-    Task "1" o-- "1" PriorityLevel : has
-    Task "1" o-- "*" Pet : has
-    Schedule "1" o-- "*" Task : contains
-    Schedule --> Scheduler : uses
+    Owner "1" o-- "*" Task : creates
+    Owner "1" *-- "*" TimeSlot : available_time_slots
+
+    Pet "*" --o "1" Task : applies_to
+
+    Task "1" -- "1" PriorityLevel : has
+
+    Scheduler ..> TimeSlot : schedules into
+    Scheduler ..> Task : schedules
