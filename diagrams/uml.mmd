@@ -27,11 +27,14 @@ classDiagram
     class Owner {
         -name: str
         -available_time_slots: List~TimeSlot~
+        -preference: str
         -tasks: List~Task~
         +get_name() str
         +set_name(name: str) void
         +get_available_time_slots() List~TimeSlot~
         +set_available_time_slots(slots: List~TimeSlot~) void
+        +get_preference() str
+        +set_preference(preference: str) void
         +get_tasks() List~Task~
         +set_tasks(tasks: List~Task~) void
         +add_task(task: Task) void
@@ -82,7 +85,7 @@ classDiagram
         +sort_tasks_by_priority(tasks: List~Task~) List~Task~$
         +filter_tasks_by_time(tasks: List~Task~, available_minutes: int) List~Task~$
         +create_daily_schedule(owner: Owner, tasks: List~Task~) Map~TimeSlot, List~Task~~$
-        +explain_choice(task: Task, reason: str) str$
+        +explain_choice() str$
     }
 
     %% =====================

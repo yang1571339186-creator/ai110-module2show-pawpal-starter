@@ -245,3 +245,39 @@ class TestCreateDailySchedule:
         slot = owner.get_available_time_slots()[0]
         total = sum(t.get_duration_minutes() for t in schedule[slot])
         assert total <= slot.duration_minutes()
+
+    def test_morning_preference_fills_earliest_slot_first(self):
+        # Slots given latest-first; a single task should land in the earliest.
+        early = TimeSlot("08:00", "09:00")
+        late = TimeSlot("20:00", "21:00")
+        owner = Owner("Alice", [late, early], preference="morning")
+        pet = Pet("Buddy", owner, "dog")
+        task = Task("Walk", [pet], 30, PriorityLevel.HIGH, False)
+        schedule = Scheduler.create_daily_schedule(owner, [task])
+
+        assert task in schedule[early]
+        assert task not in schedule[late]
+
+    def test_night_preference_fills_latest_slot_first(self):
+        # Slots given earliest-first; a single task should land in the latest.
+        early = TimeSlot("08:00", "09:00")
+        late = TimeSlot("20:00", "21:00")
+        owner = Owner("Alice", [early, late], preference="night")
+        pet = Pet("Buddy", owner, "dog")
+        task = Task("Walk", [pet], 30, PriorityLevel.HIGH, False)
+        schedule = Scheduler.create_daily_schedule(owner, [task])
+
+        assert task in schedule[late]
+        assert task not in schedule[early]
+
+    def test_no_preference_keeps_original_slot_order(self):
+        # No preference: task lands in the first slot as listed.
+        late = TimeSlot("20:00", "21:00")
+        early = TimeSlot("08:00", "09:00")
+        owner = Owner("Alice", [late, early])  # preference defaults to None
+        pet = Pet("Buddy", owner, "dog")
+        task = Task("Walk", [pet], 30, PriorityLevel.HIGH, False)
+        schedule = Scheduler.create_daily_schedule(owner, [task])
+
+        assert task in schedule[late]
+        assert task not in schedule[early]

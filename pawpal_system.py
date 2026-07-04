@@ -43,9 +43,11 @@ class TimeSlot:
 
 
 class Owner:
-    def __init__(self, name: str, available_time_slots: List[TimeSlot], tasks: List['Task'] = None):
+    def __init__(self, name: str, available_time_slots: List[TimeSlot],
+                 preference: str = None, tasks: List['Task'] = None):
         self.name = name
         self.available_time_slots = available_time_slots
+        self.preference = preference
         self.tasks = tasks if tasks is not None else []
 
     def get_name(self) -> str:
@@ -59,6 +61,12 @@ class Owner:
 
     def set_available_time_slots(self, available_time_slots: List[TimeSlot]) -> None:
         self.available_time_slots = available_time_slots
+
+    def get_preference(self) -> str:
+        return self.preference
+
+    def set_preference(self, preference: str) -> None:
+        self.preference = preference
 
     def get_tasks(self) -> List['Task']:
         return self.tasks
@@ -77,7 +85,7 @@ class Owner:
 
     def __repr__(self) -> str:
         slots_str = ', '.join([str(slot) for slot in self.available_time_slots])
-        return f"Owner(name='{self.name}', available_time_slots=[{slots_str}], tasks={len(self.tasks)})"
+        return f"Owner(name='{self.name}', available_time_slots=[{slots_str}], preference={self.preference}, tasks={len(self.tasks)})"
 
 
 class Pet:
@@ -184,7 +192,12 @@ class Scheduler:
     def create_daily_schedule(owner: Owner, tasks: List[Task]) -> dict:
         schedule = {}
         placed = set()
-        for slot in owner.get_available_time_slots():
+        slots = owner.get_available_time_slots()
+        if owner.get_preference() == "morning":
+            slots = sorted(slots, key=lambda slot: slot.start_time)
+        elif owner.get_preference() == "night":
+            slots = sorted(slots, key=lambda slot: slot.start_time, reverse=True)
+        for slot in slots:
             schedule[slot] = []
             remaining = [task for task in tasks if id(task) not in placed]
             candidates = Scheduler.filter_tasks_by_time(remaining, slot.duration_minutes())
@@ -197,5 +210,10 @@ class Scheduler:
         return schedule
 
     @staticmethod
-    def explain_choice(task: Task, reason: str) -> str:
-        pass
+    def explain_choice() -> str:
+        return (
+            "Choice is made based priority of task that can fit in a timeslot, "
+            "the quickest task is chosen to maximize the number of tasks that can "
+            "be completed in a session. Your Pawpal+ assistant works bests when "
+            "priority is set appropriately and time is allocated conservatively"
+        )

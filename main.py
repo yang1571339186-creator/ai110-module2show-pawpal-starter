@@ -1,5 +1,4 @@
-from datetime import date
-from pawpal_system import Owner, Pet, Task, TimeSlot, PriorityLevel
+from pawpal_system import Owner, Pet, Task, TimeSlot, PriorityLevel, Scheduler
 
 # Initialize TimeSlots for Owner 1
 owner1_slots = [TimeSlot("09:00", "17:00")]
@@ -111,3 +110,22 @@ print()
 print("=" * 60)
 print("All objects initialized successfully!")
 print("=" * 60)
+
+
+def print_schedule(owner):
+    print()
+    print("=" * 60)
+    print(f"DAILY SCHEDULE: {owner.get_name()}")
+    print("=" * 60)
+    schedule = Scheduler.create_daily_schedule(owner, owner.get_tasks())
+    for slot, slot_tasks in schedule.items():
+        print(f"  {slot.start_time} - {slot.end_time}:")
+        if not slot_tasks:
+            print("    (free)")
+        for task in slot_tasks:
+            print(f"    - {task.get_name()} ({task.get_duration_minutes()} min, "
+                  f"{task.get_priority().name} priority)")
+
+
+print_schedule(owner1)
+print_schedule(owner2)
